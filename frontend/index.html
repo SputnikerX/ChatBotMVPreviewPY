@@ -2,13 +2,90 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Chatbot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot Asistente</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+    }
+    .chat-container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .input-container {
+      display: flex;
+      margin-top: 20px;
+    }
+    #userInput {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    #sendButton {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin-left: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    #sendButton:hover {
+      background-color: #45a049;
+    }
+    #sendButton:disabled {
+      background-color: #cccccc;
+    }
+    #chatResponse {
+      min-height: 100px;
+      margin-top: 20px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 4px;
+      border-left: 4px solid #4CAF50;
+      white-space: pre-wrap;
+    }
+    .error {
+      color: #e74c3c;
+      font-weight: bold;
+    }
+    .status-indicator {
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Chatbot de prueba</h1>
-  <input type="text" id="userInput" placeholder="Escribe tu mensaje" />
-  <button onclick="sendMessage()">Enviar</button>
-  <div id="chatResponse"></div>
+  <h1>Chatbot Asistente</h1>
+  
+  <div class="chat-container">
+    <div id="chatResponse">Escribe un mensaje para comenzar la conversación...</div>
+    
+    <div class="input-container">
+      <input type="text" id="userInput" placeholder="Escribe tu mensaje" />
+      <button id="sendButton" onclick="sendMessage()">Enviar</button>
+    </div>
+    
+    <div class="status-indicator">
+      Powered by OpenAI Assistant API
+    </div>
+  </div>
 
   <script src="chatbot.js"></script>
 </body>
