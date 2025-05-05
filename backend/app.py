@@ -5,10 +5,37 @@ from openai_utils import ask_assistant
 import os
 
 app = Flask(__name__)
-CORS(app)
 
-with open("allowed_domains.json") as f:
-    allowed_domains = json.load(f)["allowed_domains"]
+# Cargar dominios permitidos
+try:
+    with open("allowed_domains.json") as f:
+        allowed_origins = json.load(f).get("allowed_domains", [])
+    
+    # Convertir a formato de orígenes completos para CORS
+    allowed_origins = [f"http://{domain}" for domain in allowed_origins] + \
+                     [f"https://{domain}" for domain in allowed_origins]
+    
+    # Agregar versiones con puerto para desarrollo local
+    local_origins = []
+    for origin in allowed_origins:
+        if "localhost" in origin or "127.0.0.1" in origin:
+            for port in ["3000", "5000", "5500", "8000", "8080"]:
+                local_origins.append(f"{origin}:{port}")
+    
+    allowed_origins.extend(local_origins)
+    
+    # Configurar CORS con los orígenes permitidos
+    cors_config = {
+        "origins": allowed_origins,
+        "methods": ["GET", "POST"],
+        "allow_headers": ["Content-Type"]
+    }
+    CORS(app, resources={r"/*": cors_config})
+    
+except Exception as e:
+    print(f"Error configurando CORS: {str(e)}")
+    # En caso de error, permitir todo en modo desarrollo
+    CORS(app)
 
 @app.route("/healthcheck", methods=["GET"])
 def healthcheck():
@@ -18,12 +45,8 @@ def healthcheck():
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json()
-    origin = request.headers.get("Origin", "")
-    domain = origin.replace("http://", "").replace("https://", "").split(":")[0]
-
-    if domain not in allowed_domains:
-        return jsonify({"error": "Dominio no autorizado"}), 403
-
+    
+    # Validación de mensaje y assistant_id
     message = data.get("message", "")
     assistant_id = data.get("assistant_id", "")
 

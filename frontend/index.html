@@ -3,194 +3,320 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chatbot Asistente</title>
+  <title>Chat Asistente</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
       background-color: #f5f5f5;
-      color: #333;
     }
-    h1 {
-      color: #2C3E50;
-      text-align: center;
-      margin-bottom: 30px;
-      font-weight: 600;
+
+    /* Chat widget contenedor */
+    .chat-widget {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      width: 350px;
     }
+
+    /* Botón flotante para abrir el chat */
+    .chat-button {
+      align-self: flex-end;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: #4CAF50;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .chat-button:hover {
+      background-color: #388E3C;
+      transform: scale(1.05);
+    }
+
+    .chat-button svg {
+      width: 30px;
+      height: 30px;
+    }
+
+    /* Contenedor del chat */
     .chat-container {
+      display: none;
+      flex-direction: column;
       background: white;
       border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      padding: 25px;
-      margin-top: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      max-height: 500px;
+      margin-bottom: 15px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
     }
+
+    .chat-container.active {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Cabecera del chat */
+    .chat-header {
+      background-color: #4CAF50;
+      color: white;
+      padding: 12px 15px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .close-button {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+    }
+
+    /* Área de mensajes */
     .messages-container {
-      max-height: 450px;
+      flex: 1;
       overflow-y: auto;
-      margin-bottom: 20px;
       padding: 15px;
-      background: #fff;
-      border-radius: 8px;
-      border: 1px solid #eaeaea;
+      max-height: 350px;
+      scroll-behavior: smooth;
     }
+
+    /* Mensajes */
     .message {
-      margin-bottom: 20px;
-      padding: 12px 16px;
+      margin-bottom: 12px;
+      padding: 10px 14px;
       border-radius: 18px;
       max-width: 80%;
       word-wrap: break-word;
+      font-size: 14px;
+      line-height: 1.4;
       position: relative;
-      line-height: 1.5;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
+
     .user-message {
       background-color: #E3F2FD;
       color: #0D47A1;
       margin-left: auto;
       border-bottom-right-radius: 4px;
     }
+
     .assistant-message {
       background-color: #F5F5F5;
       color: #424242;
       margin-right: auto;
       border-bottom-left-radius: 4px;
-      padding-left: 60px;
     }
+
     .system-message {
       background-color: #FAFAFA;
-      margin: 0 auto;
-      text-align: center;
       font-style: italic;
       color: #757575;
+      text-align: center;
+      margin: 10px auto;
       max-width: 90%;
-      border: none;
-      box-shadow: none;
-      padding: 8px 12px;
-      font-size: 0.9em;
+      padding: 5px 10px;
+      font-size: 12px;
+      border-radius: 10px;
     }
-    .avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      position: absolute;
-      left: -20px;
-      top: 0;
-      background-color: white;
-      padding: 2px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
+
+    /* Input para escribir mensajes */
     .input-container {
       display: flex;
-      margin-top: 20px;
-      position: relative;
+      padding: 10px;
+      border-top: 1px solid #eaeaea;
     }
+
     #userInput {
       flex: 1;
-      padding: 14px;
+      padding: 10px 15px;
       border: 1px solid #ddd;
-      border-radius: 24px;
-      font-size: 16px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      transition: border 0.3s ease;
+      border-radius: 20px;
+      font-size: 14px;
     }
+
     #userInput:focus {
       outline: none;
       border-color: #4CAF50;
     }
+
     #sendButton {
       background-color: #4CAF50;
       color: white;
       border: none;
-      padding: 12px 20px;
-      margin-left: 10px;
-      border-radius: 24px;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      margin-left: 8px;
       cursor: pointer;
-      font-size: 16px;
-      transition: background 0.3s ease;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-    #sendButton:hover {
-      background-color: #388E3C;
-    }
+
     #sendButton:disabled {
       background-color: #BDBDBD;
     }
-    .error {
-      color: #e74c3c;
-      font-weight: bold;
+
+    /* Avatar pequeño para mensajes del asistente */
+    .avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      position: absolute;
+      left: -12px;
+      top: 0;
+      background-color: white;
+      padding: 1px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
-    .status-indicator {
-      text-align: center;
-      font-size: 12px;
-      color: #757575;
-      margin-top: 15px;
-    }
-    .sender-name {
-      font-weight: 600;
-      margin-bottom: 5px;
-      font-size: 0.9em;
-    }
+
     /* Scrollbar personalizado */
     .messages-container::-webkit-scrollbar {
-      width: 6px;
+      width: 4px;
     }
     .messages-container::-webkit-scrollbar-track {
       background: #f1f1f1;
-      border-radius: 10px;
     }
     .messages-container::-webkit-scrollbar-thumb {
       background: #c1c1c1;
       border-radius: 10px;
     }
-    .messages-container::-webkit-scrollbar-thumb:hover {
-      background: #a8a8a8;
-    }
+
     /* Animación para nuevos mensajes */
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(5px); }
       to { opacity: 1; transform: translateY(0); }
     }
     .fade-in {
-      animation: fadeIn 0.3s ease forwards;
+      animation: fadeIn 0.2s ease forwards;
+    }
+
+    /* Estado de escritura */
+    .typing-indicator {
+      display: none;
+      background-color: #F5F5F5;
+      padding: 8px 12px;
+      border-radius: 18px;
+      margin-bottom: 10px;
+      max-width: 60px;
+      margin-right: auto;
+      border-bottom-left-radius: 4px;
+    }
+    .typing-indicator span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background-color: #9E9E9E;
+      border-radius: 50%;
+      margin-right: 3px;
+      animation: bounce 1.3s linear infinite;
+    }
+    .typing-indicator span:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+    .typing-indicator span:nth-child(3) {
+      animation-delay: 0.3s;
+      margin-right: 0;
+    }
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-4px); }
     }
   </style>
 </head>
 <body>
-  <h1>Chatbot Asistente</h1>
-  
-  <div class="chat-container">
-    <div id="messagesContainer" class="messages-container">
-      <!-- Los mensajes se insertarán aquí dinámicamente -->
+  <div class="content-placeholder" style="padding: 20px; text-align: center;">
+    <h1>Página Principal</h1>
+    <p>Esta es una página de demostración. El widget de chat se muestra en la esquina inferior derecha.</p>
+  </div>
+
+  <div class="chat-widget">
+    <!-- Contenedor del chat -->
+    <div class="chat-container" id="chatContainer">
+      <div class="chat-header">
+        <div>Chat de Asistencia</div>
+        <button class="close-button" id="closeChat">✕</button>
+      </div>
+      
+      <div class="messages-container" id="messagesContainer">
+        <!-- Los mensajes se insertarán aquí dinámicamente -->
+      </div>
+      
+      <!-- Indicador de escritura -->
+      <div class="typing-indicator" id="typingIndicator">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      
+      <div class="input-container">
+        <input type="text" id="userInput" placeholder="Escribe tu mensaje..." />
+        <button id="sendButton">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 2L11 13"></path>
+            <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+          </svg>
+        </button>
+      </div>
     </div>
     
-    <div class="input-container">
-      <input type="text" id="userInput" placeholder="Escribe tu mensaje..." />
-      <button id="sendButton" onclick="sendMessage()">Enviar</button>
-    </div>
-    
-    <div class="status-indicator">
-      Powered by OpenAI Assistant API
-    </div>
+    <!-- Botón flotante para abrir el chat -->
+    <button class="chat-button" id="openChat">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+    </button>
   </div>
 
   <script>
     // Configuración del chatbot
     const BACKEND_URL = "http://localhost:5000";
     const ASSISTANT_ID = "asst_i2ivyEjwxcYQT2QFwuioPzKh";
-    const AVATAR_URL = "https://api.dicebear.com/7.x/bottts/svg?seed=Sonia"; // Avatar generado dinámicamente
+    const AVATAR_URL = "https://api.dicebear.com/7.x/bottts/svg?seed=Sonia"; 
 
     // Elementos del DOM
     let userInput;
     let messagesContainer;
     let sendButton;
+    let chatContainer;
+    let typingIndicator;
 
     // Inicializar cuando el DOM esté listo
     document.addEventListener('DOMContentLoaded', () => {
       userInput = document.getElementById("userInput");
       messagesContainer = document.getElementById("messagesContainer");
       sendButton = document.getElementById("sendButton");
+      chatContainer = document.getElementById("chatContainer");
+      typingIndicator = document.getElementById("typingIndicator");
+      
+      // Controladores para abrir/cerrar el chat
+      document.getElementById("openChat").addEventListener('click', toggleChat);
+      document.getElementById("closeChat").addEventListener('click', toggleChat);
       
       // Evento para enviar al presionar Enter
       userInput.addEventListener('keypress', (e) => {
@@ -200,31 +326,57 @@
       });
       
       // Mensaje inicial de bienvenida
-      addMessage("Sistema", "Escribe un mensaje para comenzar la conversación...", "system");
+      addMessage("Sistema", "¡Hola! ¿En qué puedo ayudarte hoy?", "system");
       
       // Verificar la conexión con el backend
       checkBackendConnection();
       
-      // Enfocar el campo de entrada
-      userInput.focus();
+      // Configurar el botón de envío
+      sendButton.addEventListener('click', sendMessage);
     });
+
+    /**
+     * Alterna la visibilidad del chat
+     */
+    function toggleChat() {
+      chatContainer.classList.toggle('active');
+      
+      // Si el chat está visible, enfocar el input
+      if (chatContainer.classList.contains('active')) {
+        setTimeout(() => {
+          userInput.focus();
+        }, 300);
+      }
+    }
 
     /**
      * Verifica la conexión con el backend
      */
     async function checkBackendConnection() {
       try {
-        // Intenta la ruta /healthcheck para comprobar la conexión
         const res = await fetch(`${BACKEND_URL}/healthcheck`);
         
-        if (res.ok) {
-          console.log("Conexión con el backend establecida");
-        } else {
+        if (!res.ok) {
           addMessage("Sistema", "El servidor está en línea pero reporta un error", "system");
         }
       } catch (err) {
         addMessage("Sistema", "No se puede conectar con el backend. Asegúrate de que el servidor esté en ejecución.", "system");
       }
+    }
+
+    /**
+     * Muestra el indicador de escritura
+     */
+    function showTypingIndicator() {
+      typingIndicator.style.display = "block";
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    /**
+     * Oculta el indicador de escritura
+     */
+    function hideTypingIndicator() {
+      typingIndicator.style.display = "none";
     }
 
     /**
@@ -239,9 +391,10 @@
       addMessage("Tú", message, "user");
       
       // UI feedback
-      userInput.value = ""; // Limpiar input después de enviar
+      userInput.value = "";
       userInput.disabled = true;
       sendButton.disabled = true;
+      showTypingIndicator();
       
       try {
         const res = await fetch(`${BACKEND_URL}/chat`, {
@@ -255,12 +408,15 @@
         
         const data = await res.json();
         
+        hideTypingIndicator();
+        
         if (res.ok && data.response) {
           addMessage("Asistente", data.response, "assistant");
         } else {
           addMessage("Sistema", data.error || "Error desconocido en la respuesta", "system");
         }
       } catch (err) {
+        hideTypingIndicator();
         addMessage("Sistema", `Error de conexión: ${err.message}`, "system");
       } finally {
         userInput.disabled = false;
@@ -281,16 +437,8 @@
         // Mensaje de sistema simple
         messageDiv.innerText = text;
       } else {
-        // Mensajes de usuario y asistente con formato
-        const senderDiv = document.createElement("div");
-        senderDiv.className = "sender-name";
-        senderDiv.innerText = sender;
-        
-        const contentDiv = document.createElement("div");
-        contentDiv.innerText = text;
-        
-        messageDiv.appendChild(senderDiv);
-        messageDiv.appendChild(contentDiv);
+        // Contenido del mensaje
+        messageDiv.innerText = text;
         
         // Añadir avatar solo para mensajes del asistente
         if (type === "assistant") {
