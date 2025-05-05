@@ -11,53 +11,111 @@
       margin: 0 auto;
       padding: 20px;
       background-color: #f5f5f5;
+      color: #333;
     }
     h1 {
-      color: #333;
+      color: #2C3E50;
       text-align: center;
+      margin-bottom: 30px;
+      font-weight: 600;
     }
     .chat-container {
       background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      padding: 25px;
       margin-top: 20px;
+    }
+    .messages-container {
+      max-height: 450px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #eaeaea;
+    }
+    .message {
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      border-radius: 18px;
+      max-width: 80%;
+      word-wrap: break-word;
+      position: relative;
+      line-height: 1.5;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .user-message {
+      background-color: #E3F2FD;
+      color: #0D47A1;
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+    .assistant-message {
+      background-color: #F5F5F5;
+      color: #424242;
+      margin-right: auto;
+      border-bottom-left-radius: 4px;
+      padding-left: 60px;
+    }
+    .system-message {
+      background-color: #FAFAFA;
+      margin: 0 auto;
+      text-align: center;
+      font-style: italic;
+      color: #757575;
+      max-width: 90%;
+      border: none;
+      box-shadow: none;
+      padding: 8px 12px;
+      font-size: 0.9em;
+    }
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      position: absolute;
+      left: -20px;
+      top: 0;
+      background-color: white;
+      padding: 2px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     .input-container {
       display: flex;
       margin-top: 20px;
+      position: relative;
     }
     #userInput {
       flex: 1;
-      padding: 10px;
+      padding: 14px;
       border: 1px solid #ddd;
-      border-radius: 4px;
+      border-radius: 24px;
       font-size: 16px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      transition: border 0.3s ease;
+    }
+    #userInput:focus {
+      outline: none;
+      border-color: #4CAF50;
     }
     #sendButton {
       background-color: #4CAF50;
       color: white;
       border: none;
-      padding: 10px 20px;
+      padding: 12px 20px;
       margin-left: 10px;
-      border-radius: 4px;
+      border-radius: 24px;
       cursor: pointer;
       font-size: 16px;
+      transition: background 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     #sendButton:hover {
-      background-color: #45a049;
+      background-color: #388E3C;
     }
     #sendButton:disabled {
-      background-color: #cccccc;
-    }
-    #chatResponse {
-      min-height: 100px;
-      margin-top: 20px;
-      padding: 15px;
-      background: #f9f9f9;
-      border-radius: 4px;
-      border-left: 4px solid #4CAF50;
-      white-space: pre-wrap;
+      background-color: #BDBDBD;
     }
     .error {
       color: #e74c3c;
@@ -66,8 +124,36 @@
     .status-indicator {
       text-align: center;
       font-size: 12px;
-      color: #666;
-      margin-top: 10px;
+      color: #757575;
+      margin-top: 15px;
+    }
+    .sender-name {
+      font-weight: 600;
+      margin-bottom: 5px;
+      font-size: 0.9em;
+    }
+    /* Scrollbar personalizado */
+    .messages-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    .messages-container::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    .messages-container::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 10px;
+    }
+    .messages-container::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+    /* Animación para nuevos mensajes */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+      animation: fadeIn 0.3s ease forwards;
     }
   </style>
 </head>
@@ -75,10 +161,12 @@
   <h1>Chatbot Asistente</h1>
   
   <div class="chat-container">
-    <div id="chatResponse">Escribe un mensaje para comenzar la conversación...</div>
+    <div id="messagesContainer" class="messages-container">
+      <!-- Los mensajes se insertarán aquí dinámicamente -->
+    </div>
     
     <div class="input-container">
-      <input type="text" id="userInput" placeholder="Escribe tu mensaje" />
+      <input type="text" id="userInput" placeholder="Escribe tu mensaje..." />
       <button id="sendButton" onclick="sendMessage()">Enviar</button>
     </div>
     
@@ -87,6 +175,140 @@
     </div>
   </div>
 
-  <script src="chatbot.js"></script>
+  <script>
+    // Configuración del chatbot
+    const BACKEND_URL = "http://localhost:5000";
+    const ASSISTANT_ID = "asst_i2ivyEjwxcYQT2QFwuioPzKh";
+    const AVATAR_URL = "https://api.dicebear.com/7.x/bottts/svg?seed=Sonia"; // Avatar generado dinámicamente
+
+    // Elementos del DOM
+    let userInput;
+    let messagesContainer;
+    let sendButton;
+
+    // Inicializar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', () => {
+      userInput = document.getElementById("userInput");
+      messagesContainer = document.getElementById("messagesContainer");
+      sendButton = document.getElementById("sendButton");
+      
+      // Evento para enviar al presionar Enter
+      userInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
+      });
+      
+      // Mensaje inicial de bienvenida
+      addMessage("Sistema", "Escribe un mensaje para comenzar la conversación...", "system");
+      
+      // Verificar la conexión con el backend
+      checkBackendConnection();
+      
+      // Enfocar el campo de entrada
+      userInput.focus();
+    });
+
+    /**
+     * Verifica la conexión con el backend
+     */
+    async function checkBackendConnection() {
+      try {
+        // Intenta la ruta /healthcheck para comprobar la conexión
+        const res = await fetch(`${BACKEND_URL}/healthcheck`);
+        
+        if (res.ok) {
+          console.log("Conexión con el backend establecida");
+        } else {
+          addMessage("Sistema", "El servidor está en línea pero reporta un error", "system");
+        }
+      } catch (err) {
+        addMessage("Sistema", "No se puede conectar con el backend. Asegúrate de que el servidor esté en ejecución.", "system");
+      }
+    }
+
+    /**
+     * Envía el mensaje al backend y muestra la respuesta
+     */
+    async function sendMessage() {
+      // Validación básica
+      const message = userInput.value.trim();
+      if (!message) return;
+      
+      // Añade el mensaje del usuario al chat
+      addMessage("Tú", message, "user");
+      
+      // UI feedback
+      userInput.value = ""; // Limpiar input después de enviar
+      userInput.disabled = true;
+      sendButton.disabled = true;
+      
+      try {
+        const res = await fetch(`${BACKEND_URL}/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            message: message, 
+            assistant_id: ASSISTANT_ID 
+          })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok && data.response) {
+          addMessage("Asistente", data.response, "assistant");
+        } else {
+          addMessage("Sistema", data.error || "Error desconocido en la respuesta", "system");
+        }
+      } catch (err) {
+        addMessage("Sistema", `Error de conexión: ${err.message}`, "system");
+      } finally {
+        userInput.disabled = false;
+        sendButton.disabled = false;
+        userInput.focus();
+      }
+    }
+
+    /**
+     * Añade un mensaje al contenedor de mensajes
+     */
+    function addMessage(sender, text, type) {
+      const messageDiv = document.createElement("div");
+      messageDiv.className = `message ${type}-message fade-in`;
+      
+      // Estructura del mensaje según el tipo
+      if (type === "system") {
+        // Mensaje de sistema simple
+        messageDiv.innerText = text;
+      } else {
+        // Mensajes de usuario y asistente con formato
+        const senderDiv = document.createElement("div");
+        senderDiv.className = "sender-name";
+        senderDiv.innerText = sender;
+        
+        const contentDiv = document.createElement("div");
+        contentDiv.innerText = text;
+        
+        messageDiv.appendChild(senderDiv);
+        messageDiv.appendChild(contentDiv);
+        
+        // Añadir avatar solo para mensajes del asistente
+        if (type === "assistant") {
+          const avatar = document.createElement("img");
+          avatar.src = AVATAR_URL;
+          avatar.className = "avatar";
+          avatar.alt = "Avatar del asistente";
+          messageDiv.appendChild(avatar);
+        }
+      }
+      
+      messagesContainer.appendChild(messageDiv);
+      
+      // Desplazar hacia abajo para mostrar el mensaje más reciente
+      setTimeout(() => {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }, 100);
+    }
+  </script>
 </body>
 </html>

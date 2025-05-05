@@ -10,6 +10,11 @@ CORS(app)
 with open("allowed_domains.json") as f:
     allowed_domains = json.load(f)["allowed_domains"]
 
+@app.route("/healthcheck", methods=["GET"])
+def healthcheck():
+    """Endpoint simple para verificar que el servidor está funcionando"""
+    return jsonify({"status": "ok", "message": "El servidor está en línea"})
+
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json()
