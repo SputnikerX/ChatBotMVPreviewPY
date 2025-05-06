@@ -1,4 +1,4 @@
 {
-    "allowed_domains": ["localhost", "127.0.0.1"]
+    "allowed_domains": ["localhost", "127.0.0.1", "example.com"]
   }
   
