@@ -1,6 +1,6 @@
 # Aplicación de Chatbot con OpenAI Assistant API
 
-Esta aplicación implementa un chatbot interactivo utilizando la API de OpenAI Assistant. Proporciona una interfaz de usuario amigable que se puede integrar fácilmente en cualquier sitio web. Esta proyecto es patrocinado por NKZN Services https://nkznservices.es/
+Esta aplicación implementa un chatbot interactivo utilizando la API de OpenAI Assistant. Proporciona una interfaz de usuario amigable que se puede integrar fácilmente en cualquier sitio web. Esta proyecto está patrocinado por NKZN Services https://nkznservices.es/
 
 ## 📋 Características
 
